@@ -1,16 +1,55 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate} from 'react-router-dom'
 import Login from './Login'
 import { useForm } from "react-hook-form"
-
+import axios from "axios"
+import toast from 'react-hot-toast'
 function Signup() {
+  const location= useLocation()
+  const navigate=useNavigate()
+  const from= location.state?.from?.pathname||"/"
+  
   const {
       register,
       handleSubmit,
       
       formState: { errors },
     } = useForm()
-    const onSubmit = (data) => console.log(data);
+    const onSubmit = async (data) => {
+      const userInfo={
+        fullname:data.fullname,
+        email:data.email,
+        password:data.password
+      }
+      await axios.post("http://localhost:4001/user/signup",userInfo)
+      .then((res)=>{
+        console.log(res.data)
+        if(res.data){
+          
+          toast.success("Signup Successfully")
+          navigate(from,{replace:true})
+          setTimeout(() => {
+            window.location.reload()
+          }, 1000);
+          
+         
+          
+        }
+        localStorage.setItem("Users",JSON.stringify(res.data.user))
+      }).catch((err)=>{
+
+        if(err.response){
+
+        
+        console.log(err)
+        setTimeout(() => {
+          toast.error("Error:"+ err.response.data.message)
+        }, 1000);
+        
+        }
+      })
+      
+    }
   return (
     <div className="flex h-screen items-center justify-center ">
       
@@ -24,9 +63,9 @@ function Signup() {
   <div>
     <span  className="w-80 mt-5 py-2.5 border-rounded">Name</span>
     <br/>
-    <input type="text" placeholder="Enter your Name" className="w-80 py-2.5 border-rounded outline-none" {...register("name", { required: true })}></input>
+    <input type="text" placeholder="Enter your Name" className="w-80 py-2.5 border-rounded outline-none" {...register("fullname", { required: true })}></input>
     <br/>
-    {errors.name && <span className="text-sm text-red-500">This field is required</span>}
+    {errors.fullname && <span className="text-sm text-red-500">This field is required</span>}
   </div>
   <div>
     <span  className="w-80 mt-5 py-2.5 border-rounded">Email</span>
